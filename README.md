@@ -1,54 +1,44 @@
-# uni-resolver-driver-did-bsv
+# Universal Resolver Driver: DID BSV
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This is a [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) driver for **did:bsv** identifiers.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+# Basic Diagram of usage
+![img.png](img.png)
 
-## Running the application in dev mode
+## Specifications
 
-You can run your application in dev mode that enables live coding using:
+* [DID BSV Method Specification](https://bsvblockchain.org/did-method-specification)
 
-```shell script
-./mvnw quarkus:dev
-```
+## Example DIDs
+* Valid did = did:bsv:tba
+* Valid did = did:bsv:tba
+* Deactivated did = did:bsv:tba
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+## Build and Run (Docker)
 
-## Packaging and running the application
+1. Build the Docker image:
+```bash
+docker build -f docker/Dockerfile.jvm -t bsvdid-driver .
 
-The application can be packaged using:
+docker run --network did-network \
+  -p 9115:9115 \
+  -e BSV_RESOLVER_URL="http://host.docker.internal:9111/" \
+  -e QUARKUS_LOG_CONSOLE_JSON="true" \
+  -e QUARKUS_LOG_LEVEL="INFO" \
+  -e QUARKUS_LOG_CATEGORY__ORG_BSV__LEVEL="DEBUG" \
+  --name bsvdid-driver \
+  bsvdid-driver
 
-```shell script
-./mvnw package
-```
+curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:address:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+```  
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## Driver Environment Variables
+The driver recognizes the following environment variables:
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+### `bsv_resolver_url`
+* Specifies path to bsv resolver.
+* Default value: https://bsvdid-universal-resolver.nchain.systems
 
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/uni-resolver-driver-did-bsv-1.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+## Driver Metadata
+The driver returns the following metadata in addition to a DID document:
+* `x-httpStatus`: In `didResolutionMetadata` we add custom properties which represent returned status code from `bsv resolver`.
