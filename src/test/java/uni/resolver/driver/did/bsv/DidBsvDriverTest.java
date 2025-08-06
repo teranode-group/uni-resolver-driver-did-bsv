@@ -5,17 +5,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uniresolver.ResolutionException;
 import uniresolver.result.ResolveResult;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DidBsvDriverTest {
@@ -42,28 +49,11 @@ class DidBsvDriverTest {
         when(mockHttpResponse.body()).thenReturn(jsonResponse);
         when(mockHttpClient.resolveDid(anyString())).thenReturn(completedFuture(mockHttpResponse));
 
-        ResolveResult result = driver.resolve(DID.fromString(testDid), Map.of());
+        ResolveResponse result = driver.resolve(DID.fromString(testDid));
 
         assertNotNull(result);
-        assertEquals(testDid, result.getDidDocument().getId().toString());
+        assertEquals(testDid, result.resolveResult().getDidDocument().getId().toString());
         verify(mockHttpClient).resolveDid(testDid);
-    }
-
-    @Test
-    void resolve_shouldIncludeStatusCodeInMetadataForNon200Responses() throws Exception {
-        String testDid = "did:bsv:test456";
-        int expectedStatus = 404;
-        String jsonResponse = "{\"didResolutionMetadata\":{}}";
-
-        when(mockHttpResponse.statusCode()).thenReturn(expectedStatus);
-        when(mockHttpResponse.body()).thenReturn(jsonResponse);
-        when(mockHttpClient.resolveDid(anyString())).thenReturn(completedFuture(mockHttpResponse));
-
-        ResolveResult result = driver.resolve(DID.fromString(testDid), Map.of());
-
-        assertNotNull(result.getDidResolutionMetadata());
-        Map<?, ?> properties = (Map<?, ?>) result.getDidResolutionMetadata().get("properties");
-        assertEquals(expectedStatus, properties.get("x-httpStatus"));
     }
 
     @Test
@@ -73,7 +63,7 @@ class DidBsvDriverTest {
             .thenReturn(failedFuture(new CompletionException(new RuntimeException("Connection failed"))));
 
         ResolutionException exception = assertThrows(ResolutionException.class, () -> {
-            driver.resolve(DID.fromString(testDid), Map.of());
+            driver.resolve(DID.fromString(testDid));
         });
         assertTrue(exception.getMessage().contains("Connection to resolver failed"));
     }
@@ -81,13 +71,21 @@ class DidBsvDriverTest {
     @Test
     void resolve_shouldThrowResolutionExceptionForInvalidJsonResponse() {
         String testDid = "did:bsv:testInvalid";
-        when(mockHttpResponse.body()).thenReturn("invalid json");
-        when(mockHttpClient.resolveDid(anyString())).thenReturn(completedFuture(mockHttpResponse));
 
-        ResolutionException exception = assertThrows(ResolutionException.class, () -> {
-            driver.resolve(DID.fromString(testDid), Map.of());
-        });
-        assertTrue(exception.getMessage().contains("Unexpected error"));
+        when(mockHttpResponse.body()).thenReturn("bad json but status 200");
+        when(mockHttpClient.resolveDid(anyString()))
+            .thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
+
+        try (MockedStatic<ResolveResult> mockedStatic = mockStatic(ResolveResult.class)) {
+            mockedStatic.when(() -> ResolveResult.fromJson(anyString()))
+                .thenThrow(new IOException("Invalid JSON"));
+
+            ResolutionException exception = assertThrows(ResolutionException.class,
+                () -> driver.resolve(DID.fromString(testDid)));
+
+            assertEquals("Can not parse response from Resolver: Invalid JSON",
+                exception.getMessage());
+        }
     }
 
     private static <T> java.util.concurrent.CompletableFuture<T> completedFuture(T value) {

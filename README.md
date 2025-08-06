@@ -10,9 +10,9 @@ This is a [Universal Resolver](https://github.com/decentralized-identity/univers
 * [DID BSV Method Specification](https://bsvblockchain.org/did-method-specification)
 
 ## Example DIDs
-* Valid did = did:bsv:tba
-* Valid did = did:bsv:tba
-* Deactivated did = did:bsv:tba
+* Valid did = did:bsv:adaf8c37db395b05bde08ddfb47eb898108dcdef8cf8dac3d9d1bc587d57828e
+* Valid did = did:bsv:49e48f452457524f036a3f386388500a6256a9fd21e0e003295bbf3a0455baab
+* Deactivated did = did:bsv:9b7cfb6dd65dea457323579798c1479cbd9d00304c1384d590ff15559e6519cf
 
 ## Build and Run (Docker)
 
@@ -38,7 +38,3 @@ The driver recognizes the following environment variables:
 ### `bsv_resolver_url`
 * Specifies path to bsv resolver.
 * Default value: https://bsvdid-universal-resolver.nchain.systems
-
-## Driver Metadata
-The driver returns the following metadata in addition to a DID document:
-* `x-httpStatus`: In `didResolutionMetadata` we add custom properties which represent returned status code from `bsv resolver`.
