@@ -33,7 +33,7 @@ public class DidBsvDriver {
 
         } catch (CompletionException e) {
             throw new ResolutionException("Connection to resolver failed: " + e.getCause().getMessage());
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new ResolutionException("Can not parse response from Resolver: " + e.getMessage());
         }
     }

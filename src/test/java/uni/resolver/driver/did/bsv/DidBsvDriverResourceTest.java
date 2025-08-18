@@ -58,7 +58,7 @@ class DidBsvDriverResourceTest {
         String invalidDid = "invalid-did-format";
 
         try (Response response = resource.resolve(invalidDid)) {
-            assertEquals(500, response.getStatus());
+            assertEquals(400, response.getStatus());
         }
     }
 }

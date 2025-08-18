@@ -1,13 +1,11 @@
 # Universal Resolver Driver: DID BSV
-
-This is a [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) driver for **did:bsv** identifiers.
+[Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) Introduction - W3C Submission
+We are pleased to introduce our Universal Resolver, a standards-compliant solution for DID resolution based on the our method. This implementation offers a clean, modular, and scalable backend service to the BSV method Universal Resolver Driver.
+Our documentation, which explains how the  Universal Resolver works and how to connect to it, can be found at the following link: https://docs.teranode.group/tng-identity-documentation/did/bsv-did-universal-resolver.
+This implementation is designed to facilitate seamless interoperability while maintaining a high level of scalability and compliance with W3C’s decentralized identity standards.
 
 # Basic Diagram of usage
 ![img.png](img.png)
-
-## Specifications
-
-* [DID BSV Method Specification](https://bsvblockchain.org/did-method-specification)
 
 ## Example DIDs
 * Valid did = did:bsv:adaf8c37db395b05bde08ddfb47eb898108dcdef8cf8dac3d9d1bc587d57828e
@@ -21,20 +19,19 @@ This is a [Universal Resolver](https://github.com/decentralized-identity/univers
 docker build -f docker/Dockerfile.jvm -t bsvdid-driver .
 
 docker run --network did-network \
-  -p 9115:9115 \
-  -e BSV_RESOLVER_URL="http://host.docker.internal:9111/" \
+  -p 9115:8080 \
+  -e BSV_RESOLVER_URL="https://bsvdid-universal-resolver.nchain.systems" \
   -e QUARKUS_LOG_CONSOLE_JSON="true" \
   -e QUARKUS_LOG_LEVEL="INFO" \
   -e QUARKUS_LOG_CATEGORY__ORG_BSV__LEVEL="DEBUG" \
   --name bsvdid-driver \
   bsvdid-driver
 
-curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:address:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+curl -X GET http://0 0.0.0.0:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f386388500a6256a9fd21e0e003295bbf3a0455baab
 ```  
 
-## Driver Environment Variables
-The driver recognizes the following environment variables:
-
-### `bsv_resolver_url`
-* Specifies path to bsv resolver.
-* Default value: https://bsvdid-universal-resolver.nchain.systems
+## Authors
+* Goran Stevanić (g.stevanic@teranode.group)
+* David Bricman (d.bricman@teranode.group)
+* Marko Kramer (m.kramer@teranode.group)
+* Maria Eugenia Lopez (h.lopez@teranode.group)

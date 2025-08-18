@@ -1,4 +1,4 @@
-version: "3.7"
+version: "1.0"
 
 services:
   # BSV DID Driver Service
@@ -11,8 +11,7 @@ services:
     ports:
       - "9115:9115"  # Driver's exposed port
     environment:
-      # Point to resolver in the same network
-      BSV_RESOLVER_URL: "http://host.docker.internal:9111/"
+      BSV_RESOLVER_URL: "https://bsvdid-universal-resolver.nchain.systems/"
 
       # Logging configuration
       QUARKUS_LOG_CONSOLE_JSON: "true"
