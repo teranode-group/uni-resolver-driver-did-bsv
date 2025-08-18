@@ -18,7 +18,7 @@ This implementation is designed to facilitate seamless interoperability while ma
 ```bash
 docker build -f docker/Dockerfile.jvm -t bsvdid-driver .
 
-docker run --network did-network \
+docker run \
   -p 9115:8080 \
   -e BSV_RESOLVER_URL="https://bsvdid-universal-resolver.nchain.systems" \
   -e QUARKUS_LOG_CONSOLE_JSON="true" \
@@ -27,7 +27,7 @@ docker run --network did-network \
   --name bsvdid-driver \
   bsvdid-driver
 
-curl -X GET http://0 0.0.0.0:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f386388500a6256a9fd21e0e003295bbf3a0455baab
+curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f386388500a6256a9fd21e0e003295bbf3a0455baab
 ```  
 
 ## Authors
