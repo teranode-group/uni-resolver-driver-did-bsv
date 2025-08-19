@@ -5,7 +5,7 @@ Our documentation, which explains how the  Universal Resolver works and how to c
 This implementation is designed to facilitate seamless interoperability while maintaining a high level of scalability and compliance with W3C’s decentralized identity standards.
 
 # Basic Diagram of usage
-![img.png](img.png)
+![img.png](docs/img.png)
 
 ## Example DIDs
 * Valid did = did:bsv:adaf8c37db395b05bde08ddfb47eb898108dcdef8cf8dac3d9d1bc587d57828e
@@ -19,7 +19,7 @@ This implementation is designed to facilitate seamless interoperability while ma
 docker build -f docker/Dockerfile.jvm -t bsvdid-driver .
 
 docker run \
-  -p 9115:8080 \
+  -p 9115:9115 \
   -e BSV_RESOLVER_URL="https://bsvdid-universal-resolver.nchain.systems" \
   -e QUARKUS_LOG_CONSOLE_JSON="true" \
   -e QUARKUS_LOG_LEVEL="INFO" \
