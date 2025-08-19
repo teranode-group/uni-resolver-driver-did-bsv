@@ -14,10 +14,24 @@ This implementation is designed to facilitate seamless interoperability while ma
 
 ## Build and Run (Docker)
 
-1. Build the Docker image:
+1. #### Build the Docker image:
 ```bash
 docker build -f docker/Dockerfile.jvm -t bsvdid-driver .
+```  
+2. #### Run the docker image:
+```bash
+docker run -p 9115:9115 --name bsvdid-driver bsvdid-driver
 
+curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f386388500a6256a9fd21e0e003295bbf3a0455baab
+```  
+
+3. #### Possible configuration of environment  variables:
+* **BSV_RESOLVER URL**: Link to the BSVDID universal resolver. Here you can add something like http://localhost:9115/ if you are running bsvdid resolver locally. Default value = https://bsvdid-universal-resolver.nchain.systems 
+* **QUARKUS_LOG_CONSOLE_JSON**: Default value = true
+* **QUARKUS_LOG_LEVEL**: Default value = INFO
+
+4. #### Run the docker image with configuration:
+```bash
 docker run \
   -p 9115:9115 \
   -e BSV_RESOLVER_URL="https://bsvdid-universal-resolver.nchain.systems" \
