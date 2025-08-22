@@ -18,7 +18,7 @@ public class DidBsvDriver {
 
     BsvHttpClient httpClient;
 
-    DidBsvDriver(BsvHttpClient httpClient) {
+    public DidBsvDriver(BsvHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 

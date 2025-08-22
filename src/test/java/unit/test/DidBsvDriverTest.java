@@ -1,4 +1,4 @@
-package uni.resolver.driver.did.bsv;
+package unit.test;
 
 import foundation.identity.did.DID;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uni.resolver.driver.did.bsv.BsvHttpClient;
+import uni.resolver.driver.did.bsv.DidBsvDriver;
+import uni.resolver.driver.did.bsv.ResolveResponse;
 import uniresolver.ResolutionException;
 import uniresolver.result.ResolveResult;
 
@@ -62,9 +65,7 @@ class DidBsvDriverTest {
         when(mockHttpClient.resolveDid(anyString()))
             .thenReturn(failedFuture(new CompletionException(new RuntimeException("Connection failed"))));
 
-        ResolutionException exception = assertThrows(ResolutionException.class, () -> {
-            driver.resolve(DID.fromString(testDid));
-        });
+        ResolutionException exception = assertThrows(ResolutionException.class, () -> driver.resolve(DID.fromString(testDid)));
         assertTrue(exception.getMessage().contains("Connection to resolver failed"));
     }
 
