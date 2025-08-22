@@ -1,4 +1,4 @@
-package uni.resolver.driver.did.bsv;
+package unit.test;
 
 import foundation.identity.did.DID;
 import jakarta.ws.rs.core.Response;
@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uni.resolver.driver.did.bsv.DidBsvDriver;
+import uni.resolver.driver.did.bsv.ResolveResponse;
 import uni.resolver.driver.did.bsv.rest.DidBsvDriverResource;
 import uniresolver.result.ResolveResult;
 
