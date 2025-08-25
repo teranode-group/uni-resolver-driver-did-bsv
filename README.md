@@ -1,4 +1,4 @@
-# Universal Resolver Driver: DID BSV
+# Universal Resolver Driver: DID BSV 
 [Universal Resolver](https://github.com/decentralized-identity/universal-resolver/) Introduction - W3C Submission
 We are pleased to introduce our Universal Resolver, a standards-compliant solution for DID resolution based on the [our method](https://docs.teranode.group/tng-identity-documentation/did/bsv-did-method-specifications). This implementation offers a clean, modular, and scalable backend service to the BSV method Universal Resolver Driver.
 Our documentation, which explains how the  Universal Resolver works and how to connect to it, can be found at the following link: https://docs.teranode.group/tng-identity-documentation/did/bsv-did-universal-resolver.
