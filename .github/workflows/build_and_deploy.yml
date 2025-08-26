@@ -1,0 +1,131 @@
+name: Build, Test, and Deploy Docker Images
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches:
+      - "main"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    steps:
+      # --- Initial Setup ---
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Git describe for versioning
+        id: ghd
+        uses: proudust/gh-describe@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build project
+        run: |
+          ./mvnw -B package --file pom.xml --fail-at-end -DskipTests
+
+      - name: Tests
+        run: |
+          ./mvnw -B verify --file pom.xml # --fail-at-end
+
+      - name: Create Docker network
+        run: docker network create did-network
+
+      - name: Start integration test environment
+        run: docker compose -f docker-compose-integration-test.yml up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services to be ready..."
+          sleep 5
+
+      - name: Run Integration Tests
+        run: ./mvnw verify -Pintegration-tests -Dskip.integration.tests=false
+
+        # --- AWS Configuration ---
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ECR_PUSH_552_ROLE }}
+          aws-region: eu-west-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Store ECR registry name
+        run: |
+          echo "ECR_REGISTRY=${{ steps.ecr-login.outputs.registry }}" >> $GITHUB_ENV
+          echo "ECR Registry: ${{ steps.ecr-login.outputs.registry }}"
+
+      # --- Docker Hub Login ---
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          logout: true
+      - name: Verify Docker Hub authentication
+        run: |
+          echo "Testing Docker Hub authentication..."
+          docker system info | grep Username
+          echo "Authentication successful for user: ${{ secrets.DOCKER_HUB_USERNAME }}"
+
+      # --- Version Extraction ---
+      - name: Get project version from pom.xml
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Project version: $VERSION"
+
+      # --- Image Tagging ---
+      - name: Set image tags
+        run: |
+          # Format: version-commitsSinceTag-commitHash
+          IMAGE_TAG=$VERSION-v${{ steps.ghd.outputs.distance }}-g${{ steps.ghd.outputs.short_sha }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          
+          # ECR image URL
+          echo "IMAGE_REGISTRY_URL=$ECR_REGISTRY/universal-resolver-driver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          # Docker Hub image URL
+          echo "DOCKERHUB_IMAGE_URL=teranodegroup/universalresolver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          echo "Image tag: $IMAGE_TAG"
+          echo "ECR image URL: $IMAGE_REGISTRY_URL"
+          echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"
+
+      - name: Build docker image
+        if: env.IMAGE_REGISTRY_URL != ''
+        run: |
+          # Build a docker container
+          docker buildx build -t $IMAGE_REGISTRY_URL -t $DOCKERHUB_IMAGE_URL -f docker/Dockerfile.jvm .
+
+      - name: Push docker image
+        if: env.IMAGE_REGISTRY_URL != ''
+        run: |
+          docker push $IMAGE_REGISTRY_URL
+
+      # --- Push to Docker Hub ---
+      - name: Push to Docker Hub
+        if: env.DOCKERHUB_IMAGE_URL != ''
+        run: |
+          docker push $DOCKERHUB_IMAGE_URL
+          echo "Successfully pushed to Docker Hub: $DOCKERHUB_IMAGE_URL"
+
+      # --- Cleanup ---
+      - name: Cleanup Docker resources
+        if: always()
+        run: |
+          docker compose -f docker-compose-integration-test.yml down
+          docker network rm did-network || true
