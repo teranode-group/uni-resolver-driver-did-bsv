@@ -36,7 +36,7 @@ public class DidBsvDriverResource {
                 .build();
         } catch (ParserException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(ResolutionException.ERROR_INVALIDDID)
+                .entity(ResolutionException.ERROR_INVALID_DID)
                 .build();
         } catch (RuntimeException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
