@@ -3,7 +3,8 @@ name: Build, Test, and Deploy Docker Images
 on:
   push:
     branches:
-      - "main"
+      - main
+      - release/**
 
 permissions:
   id-token: write
@@ -103,6 +104,22 @@ jobs:
           echo "ECR image URL: $IMAGE_REGISTRY_URL"
           echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"
 
+      - name: Release candidate image tag
+        if: startsWith(github.ref, 'refs/heads/release/') # Every push to release branch is an RC build
+        run: |
+          IMAGE_TAG=$VERSION-RC-v${{ steps.ghd.outputs.distance }}-g${{ steps.ghd.outputs.short-sha }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          
+           # ECR image URL
+          echo "IMAGE_REGISTRY_URL=$ECR_REGISTRY/universal-resolver-driver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          # Docker Hub image URL
+          echo "DOCKERHUB_IMAGE_URL=teranodegroup/universalresolver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          echo "Release image tag: $IMAGE_TAG"
+          echo "ECR image URL: $IMAGE_REGISTRY_URL"
+          echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"
+
       - name: Build docker image
         if: env.IMAGE_REGISTRY_URL != ''
         run: |
@@ -116,7 +133,7 @@ jobs:
 
       # --- Push to Docker Hub ---
       - name: Push to Docker Hub
-        if: env.DOCKERHUB_IMAGE_URL != ''
+        if: env.DOCKERHUB_IMAGE_URL != '' && startsWith(github.ref, 'refs/heads/release/')
         run: |
           docker push $DOCKERHUB_IMAGE_URL
           echo "Successfully pushed to Docker Hub: $DOCKERHUB_IMAGE_URL"
