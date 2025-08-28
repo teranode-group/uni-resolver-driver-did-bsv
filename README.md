@@ -45,7 +45,7 @@ curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f
 ```  
 
 ## Authors
-* Goran Stevanić (g.stevanic@teranode.group)
-* David Bricman (d.bricman@teranode.group)
-* Marko Kramer (m.kramer@teranode.group)
-* Maria Eugenia Lopez (h.lopez@teranode.group)
+* Goran Stevanić 
+* David Bricman 
+* Marko Kramer 
+* Maria Eugenia Lopez
