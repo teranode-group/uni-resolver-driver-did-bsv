@@ -104,7 +104,6 @@ jobs:
         if: env.DOCKERHUB_IMAGE_URL != ''
         run: |
           # Build a docker container
-          docker buildx create --name container-builder --driver docker-container --use
           docker buildx build --provenance=true --sbom=true --no-cache -f docker/Dockerfile.jvm -t $DOCKERHUB_IMAGE_URL --push .
 
       # --- Push to Docker Hub ---
