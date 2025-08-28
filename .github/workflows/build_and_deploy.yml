@@ -71,6 +71,17 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Project version: $VERSION"
 
+      - name: Prepare image tag
+        run: |
+          IMAGE_TAG=$VERSION-RC-v${{ steps.ghd.outputs.distance }}-g${{ steps.ghd.outputs.short-sha }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          
+          # Docker Hub image URL
+          echo "DOCKERHUB_IMAGE_URL=teranodegroup/universalresolver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          echo "Release image tag: $IMAGE_TAG"
+          echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"    
+
       - name: Release candidate image tag
         if: startsWith(github.ref, 'refs/heads/release/') # Every push to release branch is an RC build
         run: |
@@ -90,7 +101,7 @@ jobs:
           docker buildx build --provenance=true --sbom=true --no-cache -f docker/Dockerfile.jvm -t $DOCKERHUB_IMAGE_URL --push .
 
       # --- Push to Docker Hub ---
-      - name:  Build docker image and push to DockerHub
+      - name: Build docker image and push to DockerHub
         if: env.DOCKERHUB_IMAGE_URL != '' && startsWith(github.ref, 'refs/heads/release/')
         run: |
           docker buildx build --provenance=true --sbom=true --no-cache -f docker/Dockerfile.jvm -t $DOCKERHUB_IMAGE_URL --push .
