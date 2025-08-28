@@ -94,10 +94,17 @@ jobs:
           echo "Release image tag: $IMAGE_TAG"
           echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"
 
+      - name: Build a docker container
+        if: env.DOCKERHUB_IMAGE_URL != ''
+        run: |
+          # Build a docker container
+          docker buildx create --name container-builder --driver docker-container --use
+
       - name: Build docker image and push
         if: env.DOCKERHUB_IMAGE_URL != ''
         run: |
           # Build a docker container
+          docker buildx create --name container-builder --driver docker-container --use
           docker buildx build --provenance=true --sbom=true --no-cache -f docker/Dockerfile.jvm -t $DOCKERHUB_IMAGE_URL --push .
 
       # --- Push to Docker Hub ---
