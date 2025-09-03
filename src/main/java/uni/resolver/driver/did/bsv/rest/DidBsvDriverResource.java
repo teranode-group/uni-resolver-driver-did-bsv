@@ -24,7 +24,7 @@ public class DidBsvDriverResource {
 
     @GET
     @Path("/{did}")
-    @Produces({ "application/did+json", "application/did+ld+json", "application/ld+json;profile=https://w3id.org/did-resolution", "text/plain" })
+    @Produces({"application/did", "application/did+json", "application/did-resolution"})
     public Response resolve(@PathParam("did") String didString) {
         try {
             ResolveResponse result = driver.resolve(DID.fromString(didString));
