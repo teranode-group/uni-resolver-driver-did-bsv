@@ -1,0 +1,94 @@
+name: Build, Test, and Deploy Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    steps:
+      # --- Initial Setup ---
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Git describe for versioning
+        id: ghd
+        uses: proudust/gh-describe@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build project
+        run: |
+          ./mvnw -B package -DskipTests
+
+      - name: Create docker network
+        run: |
+          docker network create did-network
+      - name: Unit test and Integration test
+        run: |
+          ./mvnw -B verify -DskipITs=false
+
+      # --- Docker Hub Login ---
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          logout: true
+      - name: Verify Docker Hub authentication
+        run: |
+          echo "Testing Docker Hub authentication..."
+          docker system info | grep Username
+          echo "Authentication successful for user: ${{ secrets.DOCKER_HUB_USERNAME }}"
+
+      # --- Version Extraction ---
+      - name: Get project version from pom.xml
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Project version: $VERSION"
+
+      - name: Release candidate image tag
+        if: startsWith(github.ref, 'refs/heads/release/') # Every push to release branch is an RC build
+        run: |
+          IMAGE_TAG=$VERSION-RC-v${{ steps.ghd.outputs.distance }}-g${{ steps.ghd.outputs.short-sha }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          
+          # Docker Hub image URL
+          echo "DOCKERHUB_IMAGE_URL=teranodegroup/universalresolver:$IMAGE_TAG" >> $GITHUB_ENV
+          
+          echo "Release image tag: $IMAGE_TAG"
+          echo "Docker Hub image URL: $DOCKERHUB_IMAGE_URL"
+
+      - name: Create a docker container
+        if: env.DOCKERHUB_IMAGE_URL != '' && startsWith(github.ref, 'refs/heads/release/')
+        run: |
+          # Create a docker container
+          docker buildx create --name container-builder --driver docker-container --use
+
+      # --- Push to Docker Hub ---
+      - name: Build docker image and push to DockerHub
+        if: env.DOCKERHUB_IMAGE_URL != '' && startsWith(github.ref, 'refs/heads/release/')
+        run: |
+          docker buildx build --provenance=true --sbom=true --no-cache -f docker/Dockerfile.jvm -t $DOCKERHUB_IMAGE_URL --push .
+          echo "Successfully pushed to Docker Hub: $DOCKERHUB_IMAGE_URL"
+
+      # --- Cleanup ---
+      - name: Cleanup Docker resources
+        if: always()
+        run: |
+          docker network rm did-network || true
