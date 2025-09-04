@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  # BSV DID Driver Service
+  bsvdid-driver-test:
+    platform: "linux/amd64"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.jvm
+    ports:
+      - "9116:9115"  # Driver's exposed port
+    environment:
+      BSV_RESOLVER_URL: "https://bsvdid-universal-resolver.nchain.systems/"
+
+      # Logging configuration
+      QUARKUS_LOG_CONSOLE_JSON: "true"
+      QUARKUS_LOG_LEVEL: "INFO"
+      QUARKUS_LOG_CATEGORY__ORG_BSV__LEVEL: "DEBUG"
+      QUARKUS_LOG_CONSOLE_JSON_ADDITIONAL_FIELD__origin__VALUE: "did-driver"
+    networks:
+      - did-network
+
+networks:
+  did-network:
+    external: true
