@@ -4,6 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bsv.did</groupId>
     <artifactId>uni-resolver-driver-did-bsv</artifactId>
+
     <version>1.2-SNAPSHOT</version>
 
     <properties>
