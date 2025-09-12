@@ -50,4 +50,6 @@ curl -X GET http://localhost:9115/1.0/identifiers/did:bsv:49e48f452457524f036a3f
 * Marko Kramer 
 * Maria Eugenia Lopez
 
+***
+
 Copyright 2025 Teranode Switzerland AG
